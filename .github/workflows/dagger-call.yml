@@ -11,6 +11,11 @@ on:
                 description: Arguments to pass to `dagger call`
                 required: true
                 type: string
+            environment:
+                description: GitHub environment to deploy to (leave empty for non-deployment jobs)
+                required: false
+                type: string
+                default: ""
             runs-on:
                 description: Runner label
                 required: false
@@ -30,6 +35,7 @@ jobs:
     dagger-call:
         name: dagger call ${{ inputs.call }}
         runs-on: ${{ inputs.runs-on }}
+        environment: ${{ inputs.environment }}
         permissions:
             contents: read
         steps:
