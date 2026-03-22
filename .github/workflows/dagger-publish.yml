@@ -1,0 +1,59 @@
+name: Dagger Publish
+
+on:
+    workflow_call:
+        inputs:
+            dagger-version:
+                description: Dagger CLI version to use
+                required: true
+                type: string
+            call:
+                description: Arguments to pass to `dagger call` (must include publish command and image address)
+                required: true
+                type: string
+            registry:
+                description: Container registry to log in to
+                required: true
+                type: string
+            registry-username:
+                description: Username for registry login
+                required: true
+                type: string
+            runs-on:
+                description: Runner label
+                required: false
+                type: string
+                default: ubuntu-latest
+        secrets:
+            dagger-cloud-token:
+                required: false
+            registry-password:
+                required: true
+
+permissions: {}
+
+jobs:
+    dagger-publish:
+        name: dagger call ${{ inputs.call }}
+        runs-on: ${{ inputs.runs-on }}
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  persist-credentials: false
+
+            - name: Log in to container registry
+              uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+              with:
+                  registry: ${{ inputs.registry }}
+                  username: ${{ inputs.registry-username }}
+                  password: ${{ secrets.registry-password }}
+
+            - name: Run dagger call
+              uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
+              with:
+                  version: ${{ inputs.dagger-version }}
+                  cloud-token: ${{ secrets.dagger-cloud-token }}
+                  call: ${{ inputs.call }}
