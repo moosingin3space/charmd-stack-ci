@@ -1,0 +1,48 @@
+name: CF Worker Preview Cleanup
+
+on:
+    workflow_call:
+        inputs:
+            dagger-version:
+                description: Dagger CLI version to use
+                required: true
+                type: string
+            pr-number:
+                description: Pull request number (used to identify the preview worker to delete)
+                required: true
+                type: string
+            runs-on:
+                description: Runner label
+                required: false
+                type: string
+                default: ubuntu-latest
+        secrets:
+            dagger-cloud-token:
+                required: false
+            cloudflare-api-token:
+                required: false
+            cloudflare-account-id:
+                required: false
+
+permissions: {}
+
+jobs:
+    delete-preview:
+        name: Delete Preview CF Worker
+        runs-on: ${{ inputs.runs-on }}
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  persist-credentials: false
+
+            - name: Delete preview worker
+              uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
+              with:
+                  version: ${{ inputs.dagger-version }}
+                  cloud-token: ${{ secrets.dagger-cloud-token }}
+                  call: delete-preview-cf-worker --pr-number=${{ inputs.pr-number }} --cloudflare-api-token=env:CLOUDFLARE_API_TOKEN --cloudflare-account-id=env:CLOUDFLARE_ACCOUNT_ID
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.cloudflare-api-token }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.cloudflare-account-id }}
