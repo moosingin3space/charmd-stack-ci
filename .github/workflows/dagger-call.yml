@@ -5,8 +5,9 @@ on:
         inputs:
             dagger-version:
                 description: Dagger CLI version to use
-                required: true
+                required: false
                 type: string
+                default: "0.20.3"
             call:
                 description: Arguments to pass to `dagger call`
                 required: true
